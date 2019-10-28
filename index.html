@@ -1,0 +1,44 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Cloudlet Ping</title>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body { font: 13px Helvetica, Arial; }
+      #messages { list-style-type: none; margin: 0; padding: 0; }
+      #messages li { padding: 5px 10px; }
+      #messages li:nth-child(odd) { background: #eee; }
+    </style>
+  </head>
+  <body>
+    <ul id="messages"></ul>
+    <script src="/socket.io/socket.io.js"></script>
+		<script src="https://code.jquery.com/jquery-1.11.1.js"></script>
+    <script>
+			APPNAME = "scoaar";
+      latestLatency=0;
+      setTimeout(doLatency, 3000);
+
+      function doLatency() {
+				startTime = Date.now();
+				console.log("startTime: " + startTime);
+				var socket = io();
+				latestLatency = Date.now() - startTime;
+				console.log("latestLatency: " + latestLatency);
+
+				socket.emit('push latency', APPNAME, latestLatency);
+				socket.emit('get latency', APPNAME);
+
+				socket.on('push latency', function(latency){
+					console.log("push latency: " + latency);
+				});
+				socket.on('get latency', function(latency){
+					console.log("get latency: " + latency);
+					$('#messages').append($('<li>').text(latency));
+					latestLatency = latency;
+				});
+				setTimeout(doLatency, 3000);
+      }
+    </script>
+  </body>
+</html>

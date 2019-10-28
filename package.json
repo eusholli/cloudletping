@@ -1,0 +1,14 @@
+{
+  "name": "cloudlet-ping-service",
+  "version": "0.0.1",
+  "description": "enable a simple cloudlet ping service via socket",
+  "author": "Geoff Hollingworth <geoff.hollingworth@mobiledgex.com>",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.17.1",
+    "socket.io": "^2.3.0"
+  }
+}
