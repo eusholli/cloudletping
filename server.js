@@ -13,6 +13,10 @@ io.on('connection', function(socket){
   socket.on('disconnect', function(){
     console.log('user disconnected');
   });
+	socket.on('latencyTest', function() {
+    console.log('latencyTest');
+    socket.emit('latencyResp');
+  });
   socket.on('push latency', function(appName, latest){
     console.log('latest latency: ' + latest);
 		latency[appName] = latest;
