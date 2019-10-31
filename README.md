@@ -9,35 +9,48 @@ to show is from the core application so there is a post latancy call and a get l
 
 ```
 APPNAME = "scoaar";
-latestLatency=0;
-var socket = io();
-var startTime=0;
+		latestLatency = 0;
+		var socket = io();
+		var startTime = 0;
+		var initialized = false;
 
-socket.on('latencyResp', function(){
-	latestLatency = Date.now() - startTime;
-	console.log("latestLatency: " + latestLatency);
-	$('#messages').append($('<li>').text(latestLatency));
-	socket.emit('push latency', APPNAME, latestLatency);
+		socket.on("connect", function () {
+			if (!initialized) {
+				console.log("socket is connected");
+				setTimeout(doLatency(), 3000);
+				initialized = true;
+			}
+		});
 
-});
-socket.on('push latency', function(latency){
-	console.log("push latency: " + latency);
-});
-socket.on('get latency', function(latency){
-	console.log("get latency: " + latency);
-	$('#messages').append($('<li>').text(latency));
-	latestLatency = latency;
-});
-setTimeout(doLatency(), 3000);
+		socket.on('latencyResp', function () {
+			latestLatency = Date.now() - startTime;
+			console.log("latestLatency: " + latestLatency);
+			$('#messages').append($('<li>').text(latestLatency));
+			socket.emit('push latency', APPNAME, latestLatency);
+		});
 
-function doLatency() {
-	startTime = Date.now();
-	console.log("startTime: " + startTime);
-	socket.emit('latencyTest');
-	setTimeout(doLatency, 3000);
-}
+		socket.on('push latency', function (data) {
+			console.log("push latency: " + data.latency);
+			console.log("push jitter: " + data.jitter);
+		});
+
+		socket.on('get latency', function (data) {
+			console.log("get latency: " + data.latency);
+			console.log("get jitter: " + data.jitter);
+			$('#messages').append($('<li>').text(data.latency));
+			latestLatency = data.latency;
+		});
+
+		function doLatency() {
+			startTime = Date.now();
+			console.log("startTime: " + startTime);
+			socket.emit('latencyTest');
+			setTimeout(doLatency, 3000);
+		}
 ```
+
 ## To Build the Docker container
+
 ```docker build -t eusholli/cloudletping .
 docker login docker.mobiledgex.net
 docker tag eusholli/cloudletping:latest docker.mobiledgex.net/brexit/images/cloudletping:0.0.1

@@ -1,48 +1,80 @@
 <!doctype html>
 <html>
-  <head>
-    <title>Cloudlet Ping</title>
-    <style>
-      * { margin: 0; padding: 0; box-sizing: border-box; }
-      body { font: 13px Helvetica, Arial; }
-      #messages { list-style-type: none; margin: 0; padding: 0; }
-      #messages li { padding: 5px 10px; }
-      #messages li:nth-child(odd) { background: #eee; }
-    </style>
-  </head>
-  <body>
-    <ul id="messages"></ul>
-    <script src="/socket.io/socket.io.js"></script>
-		<script src="https://code.jquery.com/jquery-1.11.1.js"></script>
-    <script>
-			APPNAME = "scoaar";
-      latestLatency=0;
-			var socket = io();
-			var startTime=0;
 
-			socket.on('latencyResp', function(){
-				latestLatency = Date.now() - startTime;
-				console.log("latestLatency: " + latestLatency);
-				$('#messages').append($('<li>').text(latestLatency));
-				socket.emit('push latency', APPNAME, latestLatency);
+<head>
+	<title>Cloudlet Ping</title>
+	<style>
+		* {
+			margin: 0;
+			padding: 0;
+			box-sizing: border-box;
+		}
 
-			});
-			socket.on('push latency', function(latency){
-				console.log("push latency: " + latency);
-			});
-			socket.on('get latency', function(latency){
-				console.log("get latency: " + latency);
-				$('#messages').append($('<li>').text(latency));
-				latestLatency = latency;
-			});
-      setTimeout(doLatency(), 3000);
+		body {
+			font: 13px Helvetica, Arial;
+		}
 
-      function doLatency() {
-				startTime = Date.now();
-				console.log("startTime: " + startTime);
-				socket.emit('latencyTest');
-				setTimeout(doLatency, 3000);
-      }
-    </script>
-  </body>
+		#messages {
+			list-style-type: none;
+			margin: 0;
+			padding: 0;
+		}
+
+		#messages li {
+			padding: 5px 10px;
+		}
+
+		#messages li:nth-child(odd) {
+			background: #eee;
+		}
+	</style>
+</head>
+
+<body>
+	<ul id="messages"></ul>
+	<script src="/socket.io/socket.io.js"></script>
+	<script src="https://code.jquery.com/jquery-1.11.1.js"></script>
+	<script>
+		APPNAME = "scoaar";
+		latestLatency = 0;
+		var socket = io();
+		var startTime = 0;
+		var initialized = false;
+
+		socket.on("connect", function () {
+			if (!initialized) {
+				console.log("socket is connected");
+				setTimeout(doLatency(), 3000);
+				initialized = true;
+			}
+		});
+
+		socket.on('latencyResp', function () {
+			latestLatency = Date.now() - startTime;
+			console.log("latestLatency: " + latestLatency);
+			$('#messages').append($('<li>').text(latestLatency));
+			socket.emit('push latency', APPNAME, latestLatency);
+		});
+
+		socket.on('push latency', function (data) {
+			console.log("push latency: " + data.latency);
+			console.log("push jitter: " + data.jitter);
+		});
+
+		socket.on('get latency', function (data) {
+			console.log("get latency: " + data.latency);
+			console.log("get jitter: " + data.jitter);
+			$('#messages').append($('<li>').text(data.latency));
+			latestLatency = data.latency;
+		});
+
+		function doLatency() {
+			startTime = Date.now();
+			console.log("startTime: " + startTime);
+			socket.emit('latencyTest');
+			setTimeout(doLatency, 3000);
+		}
+	</script>
+</body>
+
 </html>
